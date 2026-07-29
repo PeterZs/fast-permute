@@ -89,6 +89,7 @@ CUDSSSolver<Scalar>::CUDSSSolver()
             "CUDSSSolver: fatal error (see log above for details)");
     }
 
+#if 0
     const bool  mt_strict          = envFlagEnabled("RX_CUDSS_MT_STRICT");
     const char* rx_threading_layer = std::getenv("RX_CUDSS_THREADING_LIB");
     const char* cudss_threading_layer_env = std::getenv("CUDSS_THREADING_LIB");
@@ -129,7 +130,7 @@ CUDSSSolver<Scalar>::CUDSSSolver()
             "CUDSSSolver: MT mode not configured (set CUDSS_THREADING_LIB or "
             "RX_CUDSS_THREADING_LIB to enable)");
     }
-
+#endif
     status = cudssConfigCreate(&config);
     if (status != CUDSS_STATUS_SUCCESS) {
         spdlog::error(
@@ -139,7 +140,7 @@ CUDSSSolver<Scalar>::CUDSSSolver()
         throw std::runtime_error(
             "CUDSSSolver: fatal error (see log above for details)");
     }
-
+#if 0
 #ifdef CUDSS_CONFIG_HOST_NTHREADS
     int host_nthreads = 0;
     if (parsePositiveIntEnv("RX_CUDSS_HOST_NTHREADS", host_nthreads)) {
@@ -176,7 +177,7 @@ CUDSSSolver<Scalar>::CUDSSSolver()
             "CUDSS_CONFIG_HOST_NTHREADS");
     }
 #endif
-
+#endif
     status = cudssDataCreate(handle, &data);
     if (status != CUDSS_STATUS_SUCCESS) {
         spdlog::error(
@@ -493,6 +494,23 @@ void CUDSSSolver<Scalar>::innerOrdering(std::vector<int>& user_defined_perm,
     } else {
         // DEFAULT MODE: Let CUDSS handle reordering
         spdlog::info("CUDSS: Using default reordering");
+
+        //// a customized nested dissection algorithm based on METIS.
+        // cudssAlgType_t reorder_alg = CUDSS_ALG_DEFAULT;
+        //
+        //// a custom combination of block triangular reordering and COLAMD
+        // cudssAlgType_t reorder_alg = CUDSS_ALG_1;
+        //
+        //// COLAMD with trivial block structure
+        // cudssAlgType_t reorder_alg = CUDSS_ALG_2;
+        //
+        //// an approximate minimum degree (AMD) reordering
+        // cudssAlgType_t reorder_alg = CUDSS_ALG_3;
+        //
+        // cudssConfigSet(config,
+        //                CUDSS_CONFIG_REORDERING_ALG,
+        //                &reorder_alg,
+        //                sizeof(cudssAlgType_t));
 
         // Run both reordering and symbolic factorization
         status = cudssExecute(
